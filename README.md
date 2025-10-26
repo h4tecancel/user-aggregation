@@ -18,7 +18,7 @@
 * **gorilla/mux** — роутер
 * **pgx/v5** — драйвер PostgreSQL
 * **golang-migrate** — миграции
-* **zap / slog** — логирование в зависимости от окружения(local/prod) пользователя
+* **zap / slog** — логирование в зависимости от окружения(local/prod) сервера
 * **swaggo/http-swagger** — Swagger UI
 
 ## Структура
@@ -132,3 +132,4 @@ MIGRATIONS_COMMAND=up   # up | down | version
 * `GET /summary?user_id=&service_name=&start_date=&end_date=` — сумма `price` по фильтрам (`Summary`)
 
 > Формат дат: ISO 8601 (RFC3339).
+
