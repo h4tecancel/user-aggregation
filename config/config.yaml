@@ -1,0 +1,12 @@
+app:
+  name: user-aggregation
+  env: local
+  
+http_server:
+  address: ":8080"
+  timeout: "4s"
+  idle_timeout: "60s"
+  shutdown_timeout: "10s"
+
+storage:
+  db_url: "postgres://postgres:postgres@db:5432/user-aggregation?sslmode=disable"

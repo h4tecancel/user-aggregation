@@ -1,0 +1,256 @@
+basePath: /
+definitions:
+  models.UpdateUserInfo:
+    description: User subscription update fields (all fields are optional, except
+      UserID,It does not need to be filled out to submit a request.)
+    properties:
+      end_date:
+        description: EndDate is the updated subscription end date (optional)
+        type: string
+      price:
+        description: Price is the updated subscription price (optional, always integer)
+        type: integer
+      user_id:
+        description: '!!! UserID is the unique identifier of the user(not for request!
+          ONLY RESPONSE)'
+        type: string
+    type: object
+  models.UserInfo:
+    description: User subscription information with service details and pricing
+    properties:
+      end_date:
+        description: EndDate is when the subscription ends
+        type: string
+      price:
+        description: Price is the subscription price (always integer)
+        type: integer
+      service_name:
+        description: ServiceName is the name of the subscribed service
+        type: string
+      start_date:
+        description: StartDate is when the subscription begins
+        type: string
+      user_id:
+        description: UserID is the unique identifier of the user
+        type: string
+    type: object
+  response.ErrorPayload:
+    description: Returned for all non-2xx responses.
+    properties:
+      error:
+        description: Human-readable error message
+        type: string
+      op:
+        description: Operation/context where the error occurred (optional)
+        type: string
+      status:
+        description: HTTP status code (mirrors the response status)
+        type: integer
+    type: object
+  response.Summary:
+    description: Summary response with total cost calculation
+    properties:
+      total_cost:
+        description: TotalCost is the sum of prices from filtered records
+        type: integer
+    type: object
+info:
+  contact:
+    url: http://github.com/h4tecancel
+  description: This is app for user aggregation based on REST API
+  title: User Aggregation API
+  version: "1.0"
+paths:
+  /summary:
+    get:
+      description: Get total cost summary with optional filters
+      parameters:
+      - description: Filter by service name
+        in: query
+        name: service_name
+        type: string
+      - description: Filter by user ID (UUID)
+        in: query
+        name: user_id
+        type: string
+      - description: Filter by start date (RFC3339 format)
+        in: query
+        name: start_date
+        type: string
+      - description: Filter by end date (RFC3339 format)
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Summary'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorPayload'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorPayload'
+      summary: Get filtered summary
+      tags:
+      - summary
+  /users:
+    get:
+      description: Get all user subscription information records
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.UserInfo'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorPayload'
+      summary: List of all users
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Create a new user subscription information record
+      parameters:
+      - description: User subscription information
+        in: body
+        name: userInfo
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserInfo'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.UserInfo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorPayload'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorPayload'
+      summary: Create new user info
+      tags:
+      - users
+  /users/{id}:
+    delete:
+      description: Delete all subscription information for a specific user
+      parameters:
+      - description: User ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Number of deleted records, but not in json. this will need
+            to be done
+          schema:
+            type: integer
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorPayload'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorPayload'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorPayload'
+      summary: Delete user info by ID
+      tags:
+      - users
+    get:
+      description: Get all subscription information for a specific user
+      parameters:
+      - description: User ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.UserInfo'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorPayload'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorPayload'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorPayload'
+      summary: Get user info by ID
+      tags:
+      - users
+    patch:
+      consumes:
+      - application/json
+      description: Partially update user subscription information (price and/or end
+        date)
+      parameters:
+      - description: User ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update fields (price and/or end_date)
+        in: body
+        name: update
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateUserInfo'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Number of updated records, but not in json, this will need
+            to be done
+          schema:
+            type: integer
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorPayload'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorPayload'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorPayload'
+      summary: Update user info
+      tags:
+      - users
+schemes:
+- http
+swagger: "2.0"

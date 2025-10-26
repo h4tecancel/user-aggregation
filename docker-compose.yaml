@@ -1,0 +1,58 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: ua_postgres
+    env_file: .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB -h localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  migrator:
+    image: golang:1.24
+    container_name: ua_migrator
+    working_dir: /workspace
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    volumes:
+      - ./:/workspace:rw
+    command:
+      [
+        "go", "run", "./cmd/migrator",
+        "-db-url=${MIGRATIONS_DB_URL}",
+        "-path=${MIGRATIONS_PATH}",
+        "-command=${MIGRATIONS_COMMAND}"
+      ]
+    restart: "no"
+
+
+  app:
+    image: golang:1.24
+    container_name: ua_app
+    working_dir: /workspace
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    env_file: .env
+    environment:
+      CONFIG_PATH: ${CONFIG_PATH} 
+    volumes:
+      - ./:/workspace:rw
+    command: ["go", "run", "./cmd/user-aggregation"]
+    ports:
+      - "${APP_PORT}:8080"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
